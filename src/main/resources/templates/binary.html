@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+</head>
+<body>
+<div>
+    <p>Hello! World</p>
+    <p th:text="${text}" />
+    <p>hoge</p>
+    <div id="log">
+        <form id="form" action="#">
+            <input type="text" id="message" />
+            <input type="submit" id="value" value="送信" />
+        </form>
+    </div>
+</div>
+<script type="text/javascript" src="/js/jquery-3.2.1.js" />
+<script type="text/javascript">
+$(function(){
+    console.log('start')
+
+    var ws = new WebSocket("ws://localhost:8080/ws/binaryTest")
+
+    ws.onopen = function() {
+        console.log('onopen')
+        //ws.send('welcome')
+    }
+
+    ws.onclose = function() {
+        console.log('onclose')
+    }
+
+    ws.onmessage = function(message) {
+        console.log('onmessage')
+        $("#log").append(message.data).append("<br />")
+        $("#message").val("")
+    }
+
+    ws.onerror = function(event) {
+        console.log('error')
+    }
+
+    $("#form").submit(function() {
+        console.log('submit')
+        var message = {hoge:"fuga", piyo:"piyo"}
+        console.log('message = ' + message)
+        ws.send(message)
+        return false
+    })
+})
+</script>
+</body>
+</html>

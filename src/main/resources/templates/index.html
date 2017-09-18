@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+</head>
+<body>
+<div>
+    <p>Hello! World</p>
+    <p th:text="${text}" />
+    <div>
+        <p>パラメータ</p>
+        <form id="createForm">
+            <div class="box basicTable">
+                <dl>
+                    <dt><span>ID1</span></dt>
+                    <dd><input type="text" id="merchantId1Input" /></dd>
+                </dl>
+                <dl>
+                    <dt><span>ID2</span></dt>
+                    <dd><input type="text" id="merchantId2Input" /></dd>
+                </dl>
+                <dl>
+                    <dt><span>金額</span></dt>
+                    <dd><input type="text" id="amountInput" /></dd>
+                </dl>
+                <dl>
+                    <dt><span>その他</span></dt>
+                    <dd><input type="text" id="other" /></dd>
+                </dl>
+            </div>
+            <div class="box">
+                <input type="submit" id="createButton" value="リクエストボディを生成" />
+            </div>
+        </form>
+    </div>
+    <hr />
+    <div class="box">
+        <p>リクエストボディ</p>
+        <form id="requestForm">
+            <textarea id="requestBodyTextArea" name="requestBody" rows="4" cols="40" /><br />
+            <input type="submit" id="requestButton" value="送信" />
+        </form>
+    </div>
+    <hr />
+    <div id="log">
+    </div>
+</div>
+<script type="text/javascript" src="/js/jquery-3.2.1.js" />
+<script type="text/javascript">
+$(function(){
+    console.log('start')
+
+    var ws = new WebSocket("ws://localhost:8080/ws/test")
+
+    ws.onopen = function() {
+        console.log('onopen')
+    }
+
+    ws.onclose = function() {
+        console.log('onclose')
+    }
+
+    ws.onmessage = function(message) {
+        console.log('onmessage')
+        // 結果のパース
+        var result = JSON.parse(message.data)
+        var resultCode = result.resultCode
+        var resultMessage = result.resultMessage
+        var data = result.data
+        var dataJsonString = JSON.stringify(data)
+
+        console.log('resultCode = ' + resultCode)
+        console.log('resultMessage = ' + resultMessage)
+        console.log('data = ' + dataJsonString)
+
+        $("#log").append(dataJsonString).append("<br />")
+        $("#message").val("")
+    }
+
+    ws.onerror = function(event) {
+        console.log('error')
+    }
+
+    $("#createForm").submit(function() {
+        console.log('submit')
+        var otherBase64 = window.btoa($("#other").val())
+        console.log('other(base64 encoded): ' + otherBase64)
+        var body = {
+          header: {
+            srcId: $("#merchantId1Input").val(),
+          },
+          body: {
+            merchantId: $("#merchantId2Input").val(),
+            amount: $("#amountInput").val(),
+            other: otherBase64
+          }
+        }
+        var bodyString = JSON.stringify(body, undefined, '  ')
+        $("#requestBodyTextArea").val(bodyString)
+        return false
+    })
+
+    $("#requestForm").submit(function() {
+        console.log('submit')
+        var message = $("#requestBodyTextArea").val()
+        console.log('message = ' + message)
+        ws.send(message)
+        return false
+    })
+})
+</script>
+</body>
+</html>
